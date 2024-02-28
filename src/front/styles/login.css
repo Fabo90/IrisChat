@@ -1,0 +1,14 @@
+.container {
+  min-height: 100vh; /* Ensure container takes full height of viewport */
+  display: flex;
+  justify-content: center; /* Horizontally center content */
+  align-items: flex-end; /* Align content to bottom of container */
+  background-size: contain; /* Cover entire container with background image */
+  background-position: center; /* Center the background image */
+  background-repeat: no-repeat;
+}
+
+.form-signin {
+  width: 100%; /* Take full width of container */
+  max-width: 400px; /* Limit the width if desired */
+}
