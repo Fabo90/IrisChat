@@ -43,7 +43,7 @@ export const Login = () => {
             </div>
             <div>
               <button
-                className="w-100 btn btn-sm btn-primary mb-1"
+                className="button-login m-2"
                 type="button"
                 onClick={() => {
                   if (inputUser !== "" && inputPassword !== "") {
@@ -60,7 +60,7 @@ export const Login = () => {
                 Log in
               </button>
               <button
-                className="w-100 btn btn-sm btn-secondary mb-2"
+                className="button-login m-2"
                 type="button"
                 onClick={() => navigate("/signup")}
               >

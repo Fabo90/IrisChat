@@ -6,17 +6,15 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
-  z-index: 1;
 }
 
 .form-signin {
   width: 100%; /* Take full width of container */
   max-width: 400px; /* Limit the width if desired */
-  z-index: 2;
 }
 
-.button-login {
-  background-color: #111827;
+.button-signup {
+  background-color: #294167;
   border: 1px solid transparent;
   border-radius: 0.75rem;
   box-sizing: border-box;
@@ -42,11 +40,11 @@
   width: auto;
 }
 
-.button-login:hover {
+.button-signup:hover {
   background-color: #374151;
 }
 
-.button-login:focus {
+.button-signup:focus {
   box-shadow: none;
   outline: 2px solid transparent;
   outline-offset: 2px;
