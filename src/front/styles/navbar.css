@@ -1,73 +1,14 @@
-.chat-dashboard {
-  display: flex;
-  height: calc(100vh - 80px);
+.navbar {
+  background-color: #16222e;
+  height: 80px;
+  color: white;
 }
 
-.sidebar {
-  width: 250px;
-  background-color: #253659;
-  color: #ffffff;
+img {
+  width: 90px;
+  height: 90px;
 }
-
-.header {
-  padding: 15px;
-  background-color: #253659;
-  color: #ffffff;
-}
-
-.user-list {
-  padding: 10px;
-}
-
-.user {
-  padding: 10px;
-  cursor: pointer;
-  color: #ffffff;
-}
-
-.chat-window {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.messages {
-  flex: 1;
-  padding: 20px;
-  overflow-y: scroll;
-}
-
-.message {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.sent {
-  color: #ffffff;
-}
-
-.received {
-  color: #ffffff;
-}
-
-.timestamp {
-  margin-left: 10px;
-}
-
-.message-input {
-  display: flex;
-  align-items: center;
-  padding: 20px;
-}
-
-input[type="text"] {
-  flex: 1;
-  padding: 10px;
-  margin-right: 10px;
-}
-
-button {
+.dropdown-toggle {
   background-color: #294167;
   border: 1px solid transparent;
   border-radius: 0.75rem;
@@ -94,11 +35,11 @@ button {
   width: auto;
 }
 
-.button:hover {
+.dropdown-toggle:hover {
   background-color: #374151;
 }
 
-.button:focus {
+.dropdown-toggle:focus {
   box-shadow: none;
   outline: 2px solid transparent;
   outline-offset: 2px;
