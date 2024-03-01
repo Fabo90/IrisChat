@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { Context } from "../store/appContext";
 import "../../styles/home.css";
 import { Navbar } from "../component/Navbar.jsx";
+import { useNavigate } from "react-router-dom";
 
 export const Home = () => {
+  const navigate = useNavigate();
+  const { store, actions } = useContext(Context);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
-
-  const userList = ["User 1", "User 2", "User 3", "User 4", "User 5"];
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
@@ -31,6 +33,19 @@ export const Home = () => {
     // You can implement logic here to send the message to the selected user
   };
 
+  useEffect(() => {
+    actions.getUser();
+    actions.isLogged();
+    if (!store.loggedIn) {
+      navigate("/");
+      Swal.fire({
+        icon: "info",
+        title: "Alert",
+        text: "Your session has expired. Please log in",
+      });
+    }
+  }, [store.loggedIn]);
+
   return (
     <>
       <Navbar />
@@ -40,7 +55,7 @@ export const Home = () => {
             <h2>Workspace Users</h2>
           </div>
           <div className="user-list">
-            {userList.map((user, index) => (
+            {store.userNames.map((user, index) => (
               <div
                 key={index}
                 className="user"

@@ -8,6 +8,7 @@ import injectContext from "./store/appContext";
 
 import { Login } from "./pages/Login.jsx";
 import { SignUp } from "./pages/SignUp.jsx";
+import { UserInfo } from "./pages/UserInfo.jsx";
 
 //create your first component
 const Layout = () => {
@@ -26,6 +27,7 @@ const Layout = () => {
             <Route element={<Login />} path="/" />
             <Route element={<SignUp />} path="/signup" />
             <Route element={<Home />} path="/home" />
+            <Route element={<UserInfo />} path="/userinfo" />
           </Routes>
         </ScrollToTop>
       </BrowserRouter>
