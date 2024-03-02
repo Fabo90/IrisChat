@@ -47,7 +47,7 @@ export const UserInfo = () => {
     <div className="userinfo-container">
       <div className="container mt-5">
         <h2 className="mb-4">User Name</h2>
-        <h4 className="mb-4">{store.userInfo}</h4>
+        <h4 className="mb-4">{store.userInfo.user_name}</h4>
         <h2 className="mb-4">Change Password</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-3 col-3">

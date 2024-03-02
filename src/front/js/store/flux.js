@@ -254,6 +254,128 @@ const getState = ({ getStore, getActions, setStore }) => {
           });
         }
       },
+      postMessage: async (senderId, receiverId, messageText) => {
+        let newMessage = {
+          sender_id: senderId,
+          receiver_id: receiverId,
+          message_text: messageText,
+        };
+        try {
+          const store = getStore();
+          const token = store.token || localStorage.getItem("token");
+
+          if (!token) {
+            Swal({
+              icon: "error",
+              title: "Error",
+              text: "Session expired, please log in again",
+              didClose: () => {
+                window.location.href = "/";
+              },
+            });
+            throw new Error("Session expired, please log in again");
+          }
+          const response = await fetch(
+            process.env.BACKEND_URL + "/api/send_message",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + token,
+              },
+              body: JSON.stringify(newMessage),
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Failed to send message");
+          }
+        } catch (error) {
+          console.error("Error sending message:", error);
+          Swal({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
+        }
+      },
+      getMessagesForUser: async (userId) => {
+        try {
+          const store = getStore();
+          const token = store.token || localStorage.getItem("token");
+
+          if (!token) {
+            Swal({
+              icon: "error",
+              title: "Error",
+              text: "Session expired, please log in again",
+              didClose: () => {
+                window.location.href = "/";
+              },
+            });
+            throw new Error("Session expired, please log in again");
+          }
+          const response = await fetch(
+            process.env.BACKEND_URL + `/api/get_messages/${userId}`,
+            {
+              headers: {
+                Authorization: "Bearer " + token,
+              },
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch messages");
+          }
+          const data = await response.json();
+          // Process received messages
+          // Update store or perform any other actions as needed
+        } catch (error) {
+          console.error("Error getting messages:", error);
+          Swal({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
+        }
+      },
+      getMessagesForCurrentUser: async (currentUserId) => {
+        try {
+          const store = getStore();
+          const token = store.token || localStorage.getItem("token");
+
+          if (!token) {
+            Swal({
+              icon: "error",
+              title: "Error",
+              text: "Session expired, please log in again",
+              didClose: () => {
+                window.location.href = "/";
+              },
+            });
+            throw new Error("Session expired, please log in again");
+          }
+          const response = await fetch(
+            process.env.BACKEND_URL + `/api/get_messages/${currentUserId}`,
+            {
+              headers: {
+                Authorization: "Bearer " + token,
+              },
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch messages");
+          }
+          const data = await response.json();
+          // Process received messages
+          // Update store or perform any other actions as needed
+        } catch (error) {
+          console.error("Error getting messages:", error);
+          Swal({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
+        }
+      },
     },
   };
 };

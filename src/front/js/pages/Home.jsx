@@ -3,6 +3,8 @@ import { Context } from "../store/appContext";
 import "../../styles/home.css";
 import { Navbar } from "../component/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
+import io from "socket.io-client";
+import Swal from "sweetalert";
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -10,41 +12,58 @@ export const Home = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
+  const [headerName, setHeaderName] = useState(null);
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    // You can implement logic here to fetch messages for the selected user
-    // and update the 'messages' state accordingly.
-  };
-
-  const handleMessageChange = (event) => {
-    setMessageInput(event.target.value);
-  };
-
-  const handleMessageSend = () => {
-    if (messageInput.trim() === "") return;
-    const newMessage = {
-      user: "current_user", // Assuming the current user is sending the message
-      text: messageInput,
-      timestamp: new Date().toLocaleTimeString(),
+  useEffect(() => {
+    const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
+    const newSocket = io(BACKEND_URL);
+    setSocket(newSocket);
+    return () => {
+      newSocket.close();
     };
-    setMessages([...messages, newMessage]);
-    setMessageInput("");
-    // You can implement logic here to send the message to the selected user
-  };
+  }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("new_message", (data) => {
+        setMessages((prevMessages) => [...prevMessages, data]);
+      });
+    }
+  }, [socket]);
 
   useEffect(() => {
     actions.getUser();
+    actions.getInfo();
     actions.isLogged();
     if (!store.loggedIn) {
       navigate("/");
-      Swal.fire({
+      Swal({
         icon: "info",
         title: "Alert",
         text: "Your session has expired. Please log in",
       });
     }
   }, [store.loggedIn]);
+
+  const handleUserClick = (userName) => {
+    const user = store.userNames.find((user) => user.user_name === userName);
+    if (user) {
+      actions.getInfo();
+      setHeaderName(user.user_name);
+      setSelectedUser(user);
+      actions.getMessagesForUser(user.id);
+      actions.getMessagesForCurrentUser(store.userInfo.user_id);
+    }
+  };
+
+  const handleMessageSend = () => {
+    if (messageInput.trim() === "") return;
+    actions.getInfo();
+    const senderId = store.userInfo.user_id;
+    actions.postMessage(senderId, selectedUser.id, messageInput);
+    setMessageInput("");
+  };
 
   return (
     <>
@@ -59,9 +78,9 @@ export const Home = () => {
               <div
                 key={index}
                 className="user"
-                onClick={() => handleUserClick(user)}
+                onClick={() => handleUserClick(user.user_name)}
               >
-                {user}
+                {user.user_name}
               </div>
             ))}
           </div>
@@ -69,7 +88,7 @@ export const Home = () => {
         <div className="chat-window">
           <div className="header">
             <h2>
-              {selectedUser ? selectedUser : "Select a user to start chatting"}
+              {headerName ? headerName : "Select a user to start chatting"}
             </h2>
           </div>
           <div className="messages">
@@ -91,7 +110,7 @@ export const Home = () => {
               <input
                 type="text"
                 value={messageInput}
-                onChange={handleMessageChange}
+                onChange={(e) => setMessageInput(e.target.value)}
                 placeholder="Type a message..."
               />
               <button onClick={handleMessageSend}>Send</button>
