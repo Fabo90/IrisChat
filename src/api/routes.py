@@ -15,7 +15,7 @@ api = Blueprint('api', __name__)
 # Allow CORS requests to this API
 CORS(api, origins='*')
 
-socketio = SocketIO(cors_allowed_origins="http://127.0.0.1:3000")
+socketio = SocketIO(cors_allowed_origins=["http://127.0.0.1:3000"])
 
 @socketio.on('connect')
 def handle_connect():
@@ -36,6 +36,9 @@ def login_user():
         identity_data = {"user_id": user.id, "user_name": user.user_name}
 
         access_token = create_access_token(identity=identity_data)
+
+        socketio.emit('login_success', {'user_id': user.id}, namespace='/')
+
         return jsonify(access_token=access_token), 200
     else:
         return jsonify({"msg": "Incorrect user or password"}), 401
@@ -169,9 +172,3 @@ def get_messages(user_id):
         return jsonify({"error": str(e)}), 500
 
 
-@socketio.on('connect')
-@jwt_required()
-def handle_connect():
-    user_id = get_jwt_identity()
-    # Join a room based on the user's identity (e.g., user_id)
-    join_room(user_id)

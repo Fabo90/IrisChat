@@ -1,4 +1,5 @@
 import Swal from "sweetalert";
+import io from "socket.io-client";
 
 const getState = ({ getStore, getActions, setStore }) => {
   return {
@@ -7,6 +8,8 @@ const getState = ({ getStore, getActions, setStore }) => {
       loggedIn: false,
       token: null,
       userNames: [],
+      socket: null,
+      messages: {},
     },
     actions: {
       postLogin: async (user, password) => {
@@ -289,6 +292,20 @@ const getState = ({ getStore, getActions, setStore }) => {
           if (!response.ok) {
             throw new Error("Failed to send message");
           }
+          setStore(
+            (prevState) => ({
+              messages: {
+                ...prevState.messages,
+                [receiverId]: [
+                  ...(prevState.messages[receiverId] || []),
+                  newMessage,
+                ],
+              },
+            }),
+            () => {
+              console.log(store.messages);
+            }
+          );
         } catch (error) {
           console.error("Error sending message:", error);
           Swal({
@@ -326,8 +343,18 @@ const getState = ({ getStore, getActions, setStore }) => {
             throw new Error("Failed to fetch messages");
           }
           const data = await response.json();
-          // Process received messages
-          // Update store or perform any other actions as needed
+
+          setStore(
+            (prevState) => ({
+              messages: {
+                ...prevState.messages,
+                [userId]: data,
+              },
+            }),
+            () => {
+              console.log(store.messages);
+            }
+          );
         } catch (error) {
           console.error("Error getting messages:", error);
           Swal({
@@ -364,9 +391,19 @@ const getState = ({ getStore, getActions, setStore }) => {
           if (!response.ok) {
             throw new Error("Failed to fetch messages");
           }
-          const data = await response.json();
-          // Process received messages
-          // Update store or perform any other actions as needed
+          const messages = await response.json();
+
+          setStore(
+            (prevState) => ({
+              messages: {
+                ...prevState.messages,
+                [currentUserId]: messages,
+              },
+            }),
+            () => {
+              console.log(store.messages);
+            }
+          );
         } catch (error) {
           console.error("Error getting messages:", error);
           Swal({
@@ -375,6 +412,23 @@ const getState = ({ getStore, getActions, setStore }) => {
             text: error.message,
           });
         }
+      },
+      SocketConnection: () => {
+        // Set up the socket connection
+        const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
+        const newSocket = io(BACKEND_URL);
+
+        // Store the socket object in the store
+        setStore({ socket: newSocket });
+
+        // Handle socket events or any other setup if needed
+        newSocket.on("connect", () => {
+          console.log("Socket connected");
+        });
+
+        newSocket.on("disconnect", () => {
+          console.log("Socket disconnected");
+        });
       },
     },
   };

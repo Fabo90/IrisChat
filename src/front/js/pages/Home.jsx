@@ -11,26 +11,24 @@ export const Home = () => {
   const { store, actions } = useContext(Context);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [socket, setSocket] = useState(null);
   const [headerName, setHeaderName] = useState(null);
 
   useEffect(() => {
-    const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
-    const newSocket = io(BACKEND_URL);
-    setSocket(newSocket);
+    // Listen for the new_message event
+    console.log(io.version);
+    console.log(store.socket);
+    store.socket.on("new_message", (data) => {
+      // Handle the incoming message
+      console.log("New message received:", data);
+      // Update your store or state with the new message
+      // Example: actions.updateMessages(data);
+    });
+
     return () => {
-      newSocket.close();
+      // Clean up socket connection when component unmounts
+      store.socket.disconnect();
     };
   }, []);
-
-  useEffect(() => {
-    if (socket) {
-      socket.on("new_message", (data) => {
-        setMessages((prevMessages) => [...prevMessages, data]);
-      });
-    }
-  }, [socket]);
 
   useEffect(() => {
     actions.getUser();
@@ -63,6 +61,7 @@ export const Home = () => {
     const senderId = store.userInfo.user_id;
     actions.postMessage(senderId, selectedUser.id, messageInput);
     setMessageInput("");
+    console.log(store.messages);
   };
 
   return (
@@ -93,14 +92,16 @@ export const Home = () => {
           </div>
           <div className="messages">
             {selectedUser &&
-              messages.map((message, index) => (
+              store.messages[selectedUser.id]?.map((message, index) => (
                 <div
                   key={index}
                   className={`message ${
-                    message.user === "current_user" ? "sent" : "received"
+                    message.sender_id === store.userInfo.user_id
+                      ? "sent"
+                      : "received"
                   }`}
                 >
-                  <span>{message.text}</span>
+                  <span>{message.message_text}</span>
                   <span className="timestamp">{message.timestamp}</span>
                 </div>
               ))}

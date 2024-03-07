@@ -3,6 +3,7 @@ import Swal from "sweetalert";
 import background from "../../img/background.png";
 import { Context } from "../store/appContext";
 import { useNavigate } from "react-router-dom";
+
 import "../../styles/login.css";
 
 export const Login = () => {
@@ -10,16 +11,43 @@ export const Login = () => {
   const { store, actions } = useContext(Context);
   const [inputUser, setInputUser] = useState("");
   const [inputPassword, setInputPassword] = useState("");
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
-  function save() {
-    actions.postLogin(inputUser, inputPassword);
-  }
+  const save = () => {
+    actions
+      .postLogin(inputUser, inputPassword)
+      .then(() => {
+        // If login is successful and socket is not already connected, establish socket connection
+        if (!isSocketConnected) {
+          actions.SocketConnection();
+          setIsSocketConnected(true);
+          console.log(store.socket);
+        }
+      })
+      .catch((error) => {
+        Swal({
+          icon: "error",
+          title: "Error",
+          text: error.message || "An error occurred during login",
+        });
+      });
+  };
+
   useEffect(() => {
-    actions.isLogged();
-    if (store.loggedIn) {
-      navigate("/home");
+    if (store.socket) {
+      store.socket.on("connect", () => {
+        joinRoom(); // Join the room when connected
+        navigate("/home");
+      });
     }
-  }, [store.token]);
+  }, [store.socket]);
+
+  const joinRoom = () => {
+    const token = localStorage.getItem("token");
+    if (store.socket && token) {
+      store.socket.emit("join_room", { token });
+    }
+  };
 
   return (
     <div className="login-container">
