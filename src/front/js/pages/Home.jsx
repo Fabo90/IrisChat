@@ -3,7 +3,6 @@ import { Context } from "../store/appContext";
 import "../../styles/home.css";
 import { Navbar } from "../component/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
-import io from "socket.io-client";
 import Swal from "sweetalert";
 
 export const Home = () => {
@@ -14,18 +13,13 @@ export const Home = () => {
   const [headerName, setHeaderName] = useState(null);
 
   useEffect(() => {
-    // Listen for the new_message event
-    console.log(io.version);
     console.log(store.socket);
     store.socket.on("new_message", (data) => {
-      // Handle the incoming message
       console.log("New message received:", data);
-      // Update your store or state with the new message
-      // Example: actions.updateMessages(data);
+      actions.updateMessages(data);
     });
 
     return () => {
-      // Clean up socket connection when component unmounts
       store.socket.disconnect();
     };
   }, []);
@@ -52,6 +46,7 @@ export const Home = () => {
       setSelectedUser(user);
       actions.getMessagesForUser(user.id);
       actions.getMessagesForCurrentUser(store.userInfo.user_id);
+      store.socket.emit("join_room", { user_id: user.id });
     }
   };
 
@@ -92,19 +87,21 @@ export const Home = () => {
           </div>
           <div className="messages">
             {selectedUser &&
-              store.messages[selectedUser.id]?.map((message, index) => (
-                <div
-                  key={index}
-                  className={`message ${
-                    message.sender_id === store.userInfo.user_id
-                      ? "sent"
-                      : "received"
-                  }`}
-                >
-                  <span>{message.message_text}</span>
-                  <span className="timestamp">{message.timestamp}</span>
-                </div>
-              ))}
+              store.messages[selectedUser.id]
+                ?.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                .map((message, index) => (
+                  <div
+                    key={index}
+                    className={`message ${
+                      message.sender_id === store.userInfo.user_id
+                        ? "sent"
+                        : "received"
+                    }`}
+                  >
+                    <span>{message.message_text}</span>
+                    <span className="timestamp">{message.timestamp}</span>
+                  </div>
+                ))}
           </div>
           {selectedUser && (
             <div className="message-input">

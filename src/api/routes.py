@@ -25,6 +25,12 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
+@socketio.on('join_room')
+def handle_join_room(data):
+    user_id = data['user_id']
+    join_room(user_id)
+    print(user_id)
+
 
 @api.route('/login', methods=['POST'])
 def login_user():
@@ -146,6 +152,9 @@ def send_message():
             "text": message.text,
             "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
         }, room=receiver_id)
+
+        print(f"Emitting new_message to room {receiver_id}: {message}")
+
 
         return jsonify({"message": "Message sent successfully"}), 200
     except Exception as e:

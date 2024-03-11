@@ -292,13 +292,14 @@ const getState = ({ getStore, getActions, setStore }) => {
           if (!response.ok) {
             throw new Error("Failed to send message");
           }
+          const savedMessage = await response.json();
           setStore(
             (prevState) => ({
               messages: {
                 ...prevState.messages,
                 [receiverId]: [
                   ...(prevState.messages[receiverId] || []),
-                  newMessage,
+                  savedMessage,
                 ],
               },
             }),
@@ -412,6 +413,21 @@ const getState = ({ getStore, getActions, setStore }) => {
             text: error.message,
           });
         }
+      },
+      updateMessages: (newMessage) => {
+        setStore((prevState) => {
+          // Primero, crea una copia del estado actual de los mensajes
+          const updatedMessages = { ...prevState.messages };
+
+          // Luego, añade el nuevo mensaje al array de mensajes correspondiente
+          if (!updatedMessages[newMessage.receiver_id]) {
+            updatedMessages[newMessage.receiver_id] = [];
+          }
+          updatedMessages[newMessage.receiver_id].push(newMessage);
+
+          // Finalmente, devuelve el estado actualizado
+          return { messages: updatedMessages };
+        });
       },
       SocketConnection: () => {
         // Set up the socket connection
