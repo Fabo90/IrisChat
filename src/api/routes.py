@@ -28,8 +28,10 @@ def handle_disconnect():
 @socketio.on('join_room')
 def handle_join_room(data):
     user_id = data['user_id']
-    join_room(user_id)
-    print(user_id)
+    other_user_id = data['other_user_id']
+    room_id = ''.join(sorted([str(user_id), str(other_user_id)]))
+    join_room(room_id)
+    print(f"User {user_id} joined room {room_id}")
 
 
 @api.route('/login', methods=['POST'])
@@ -145,15 +147,17 @@ def send_message():
         db.session.add(message)
         db.session.commit()
 
+        room_id = ''.join(sorted([str(sender_id), str(receiver_id)]))
+
         # Emit the new message to the receiver's room
         socketio.emit('new_message', {
             "sender_id": message.sender_id,
             "receiver_id": message.receiver_id,
             "text": message.text,
             "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-        }, room=receiver_id)
+        }, room=room_id)
 
-        print(f"Emitting new_message to room {receiver_id}: {message}")
+        print(f"Emitting new_message to room {room_id}: {message.text}")
 
 
         return jsonify({"message": "Message sent successfully"}), 200

@@ -44,9 +44,12 @@ export const Home = () => {
       actions.getInfo();
       setHeaderName(user.user_name);
       setSelectedUser(user);
+      store.socket.emit("join_room", {
+        user_id: store.userInfo.user_id,
+        other_user_id: user.id,
+      });
       actions.getMessagesForUser(user.id);
       actions.getMessagesForCurrentUser(store.userInfo.user_id);
-      store.socket.emit("join_room", { user_id: user.id });
     }
   };
 
