@@ -112,9 +112,9 @@ def change_password():
 
     return jsonify({"message": "Password changed successfully" }), 200
 
-@api.route('/user', methods=['GET'])
+@api.route('/users', methods=['GET'])
 @jwt_required()  # Require JWT authentication
-def get_user():
+def get_users():
     try:
         # Get the current user's username from the JWT token
         current_user_data = get_jwt_identity()
@@ -142,46 +142,19 @@ def send_message():
         if not receiver:
             return jsonify({"message": "Receiver not found"}), 404
 
-        # Create and save the message
-        message = Message(sender_id=sender_id, receiver_id=receiver_id, text=message_text)
-        db.session.add(message)
-        db.session.commit()
-
         room_id = ''.join(sorted([str(sender_id), str(receiver_id)]))
 
         # Emit the new message to the receiver's room
         socketio.emit('new_message', {
-            "sender_id": message.sender_id,
-            "receiver_id": message.receiver_id,
-            "text": message.text,
-            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            "sender_id": sender_id,
+            "receiver_id": receiver_id,
+            "text": message_text,
+            "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }, room=room_id)
 
-        print(f"Emitting new_message to room {room_id}: {message.text}")
-
+        print(f"Emitting new_message to room {room_id}: {message_text}")
 
         return jsonify({"message": "Message sent successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@api.route('/get_messages/<int:user_id>', methods=['GET'])
-@jwt_required()
-def get_messages(user_id):
-    try:
-        # Fetch messages where the user is either the sender or the receiver
-        messages = Message.query.filter((Message.sender_id == user_id) | (Message.receiver_id == user_id)).all()
-
-        # Serialize the messages
-        serialized_messages = [{
-            "sender_id": message.sender_id,
-            "receiver_id": message.receiver_id,
-            "text": message.text,
-            "timestamp": message.timestamp
-        } for message in messages]
-
-        return jsonify(serialized_messages), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 

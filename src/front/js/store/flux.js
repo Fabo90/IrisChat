@@ -9,7 +9,6 @@ const getState = ({ getStore, getActions, setStore }) => {
       token: null,
       userNames: [],
       socket: null,
-      messages: {},
     },
     actions: {
       postLogin: async (user, password) => {
@@ -219,7 +218,7 @@ const getState = ({ getStore, getActions, setStore }) => {
           });
         }
       },
-      getUser: async () => {
+      getUsers: async () => {
         try {
           const store = getStore();
           const token = store.token || localStorage.getItem("token");
@@ -235,7 +234,7 @@ const getState = ({ getStore, getActions, setStore }) => {
             });
             throw new Error("Token is missing");
           }
-          const response = await fetch(process.env.BACKEND_URL + "/api/user", {
+          const response = await fetch(process.env.BACKEND_URL + "/api/users", {
             method: "GET",
             headers: {
               Authorization: "Bearer " + token,
@@ -256,6 +255,23 @@ const getState = ({ getStore, getActions, setStore }) => {
             text: "Failed to get Users. Please try again later.",
           });
         }
+      },
+      SocketConnection: () => {
+        // Set up the socket connection
+        const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
+        const newSocket = io(BACKEND_URL);
+
+        // Store the socket object in the store
+        setStore({ socket: newSocket });
+
+        // Handle socket events or any other setup if needed
+        newSocket.on("connect", () => {
+          console.log("Socket connected");
+        });
+
+        newSocket.on("disconnect", () => {
+          console.log("Socket disconnected");
+        });
       },
       postMessage: async (senderId, receiverId, messageText) => {
         let newMessage = {
@@ -293,20 +309,7 @@ const getState = ({ getStore, getActions, setStore }) => {
             throw new Error("Failed to send message");
           }
           const savedMessage = await response.json();
-          setStore(
-            (prevState) => ({
-              messages: {
-                ...prevState.messages,
-                [receiverId]: [
-                  ...(prevState.messages[receiverId] || []),
-                  savedMessage,
-                ],
-              },
-            }),
-            () => {
-              console.log(store.messages);
-            }
-          );
+          console.log(savedMessage);
         } catch (error) {
           console.error("Error sending message:", error);
           Swal({
@@ -315,136 +318,6 @@ const getState = ({ getStore, getActions, setStore }) => {
             text: error.message,
           });
         }
-      },
-      getMessagesForUser: async (userId) => {
-        try {
-          const store = getStore();
-          const token = store.token || localStorage.getItem("token");
-
-          if (!token) {
-            Swal({
-              icon: "error",
-              title: "Error",
-              text: "Session expired, please log in again",
-              didClose: () => {
-                window.location.href = "/";
-              },
-            });
-            throw new Error("Session expired, please log in again");
-          }
-          const response = await fetch(
-            process.env.BACKEND_URL + `/api/get_messages/${userId}`,
-            {
-              headers: {
-                Authorization: "Bearer " + token,
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error("Failed to fetch messages");
-          }
-          const data = await response.json();
-
-          setStore(
-            (prevState) => ({
-              messages: {
-                ...prevState.messages,
-                [userId]: data,
-              },
-            }),
-            () => {
-              console.log(store.messages);
-            }
-          );
-        } catch (error) {
-          console.error("Error getting messages:", error);
-          Swal({
-            icon: "error",
-            title: "Error",
-            text: error.message,
-          });
-        }
-      },
-      getMessagesForCurrentUser: async (currentUserId) => {
-        try {
-          const store = getStore();
-          const token = store.token || localStorage.getItem("token");
-
-          if (!token) {
-            Swal({
-              icon: "error",
-              title: "Error",
-              text: "Session expired, please log in again",
-              didClose: () => {
-                window.location.href = "/";
-              },
-            });
-            throw new Error("Session expired, please log in again");
-          }
-          const response = await fetch(
-            process.env.BACKEND_URL + `/api/get_messages/${currentUserId}`,
-            {
-              headers: {
-                Authorization: "Bearer " + token,
-              },
-            }
-          );
-          if (!response.ok) {
-            throw new Error("Failed to fetch messages");
-          }
-          const messages = await response.json();
-
-          setStore(
-            (prevState) => ({
-              messages: {
-                ...prevState.messages,
-                [currentUserId]: messages,
-              },
-            }),
-            () => {
-              console.log(store.messages);
-            }
-          );
-        } catch (error) {
-          console.error("Error getting messages:", error);
-          Swal({
-            icon: "error",
-            title: "Error",
-            text: error.message,
-          });
-        }
-      },
-      updateMessages: (newMessage) => {
-        setStore((prevState) => {
-          // Primero, crea una copia del estado actual de los mensajes
-          const updatedMessages = { ...prevState.messages };
-
-          // Luego, añade el nuevo mensaje al array de mensajes correspondiente
-          if (!updatedMessages[newMessage.receiver_id]) {
-            updatedMessages[newMessage.receiver_id] = [];
-          }
-          updatedMessages[newMessage.receiver_id].push(newMessage);
-
-          // Finalmente, devuelve el estado actualizado
-          return { messages: updatedMessages };
-        });
-      },
-      SocketConnection: () => {
-        // Set up the socket connection
-        const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
-        const newSocket = io(BACKEND_URL);
-
-        // Store the socket object in the store
-        setStore({ socket: newSocket });
-
-        // Handle socket events or any other setup if needed
-        newSocket.on("connect", () => {
-          console.log("Socket connected");
-        });
-
-        newSocket.on("disconnect", () => {
-          console.log("Socket disconnected");
-        });
       },
     },
   };

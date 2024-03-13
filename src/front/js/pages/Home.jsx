@@ -11,12 +11,13 @@ export const Home = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [headerName, setHeaderName] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     console.log(store.socket);
     store.socket.on("new_message", (data) => {
       console.log("New message received:", data);
-      actions.updateMessages(data);
+      setMessages((prevMessages) => [...prevMessages, data]);
     });
 
     return () => {
@@ -25,7 +26,7 @@ export const Home = () => {
   }, []);
 
   useEffect(() => {
-    actions.getUser();
+    actions.getUsers();
     actions.getInfo();
     actions.isLogged();
     if (!store.loggedIn) {
@@ -38,18 +39,22 @@ export const Home = () => {
     }
   }, [store.loggedIn]);
 
+  useEffect(() => {
+    if (selectedUser) {
+      setHeaderName(selectedUser.user_name);
+      setMessages([]); // Clear messages when a new user is selected
+      store.socket.emit("join_room", {
+        user_id: store.userInfo.user_id,
+        other_user_id: selectedUser.id,
+      });
+    }
+  }, [selectedUser]);
+
   const handleUserClick = (userName) => {
     const user = store.userNames.find((user) => user.user_name === userName);
     if (user) {
       actions.getInfo();
-      setHeaderName(user.user_name);
       setSelectedUser(user);
-      store.socket.emit("join_room", {
-        user_id: store.userInfo.user_id,
-        other_user_id: user.id,
-      });
-      actions.getMessagesForUser(user.id);
-      actions.getMessagesForCurrentUser(store.userInfo.user_id);
     }
   };
 
@@ -59,7 +64,6 @@ export const Home = () => {
     const senderId = store.userInfo.user_id;
     actions.postMessage(senderId, selectedUser.id, messageInput);
     setMessageInput("");
-    console.log(store.messages);
   };
 
   return (
@@ -89,22 +93,30 @@ export const Home = () => {
             </h2>
           </div>
           <div className="messages">
-            {selectedUser &&
-              store.messages[selectedUser.id]
-                ?.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
-                .map((message, index) => (
-                  <div
-                    key={index}
-                    className={`message ${
-                      message.sender_id === store.userInfo.user_id
-                        ? "sent"
-                        : "received"
-                    }`}
-                  >
-                    <span>{message.message_text}</span>
-                    <span className="timestamp">{message.timestamp}</span>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`message ${
+                  message.sender_id === store.userInfo.user_id
+                    ? "sent"
+                    : "received"
+                }`}
+              >
+                <div>
+                  <div className="message-footer">
+                    <p className="message-text">{message.text}</p>
                   </div>
-                ))}
+                  <div className="message-content">
+                    <span className="timestamp">
+                      {new Date(message.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
           {selectedUser && (
             <div className="message-input">
@@ -113,6 +125,12 @@ export const Home = () => {
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 placeholder="Type a message..."
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handleMessageSend();
+                  }
+                }}
               />
               <button onClick={handleMessageSend}>Send</button>
             </div>

@@ -1,3 +1,4 @@
+/* General Styles */
 .chat-dashboard {
   display: flex;
   height: calc(100vh - 80px);
@@ -31,30 +32,41 @@
   flex-direction: column;
 }
 
+/* Message Styles */
 .messages {
   flex: 1;
   padding: 20px;
   overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
   margin-bottom: 10px;
+  border-radius: 10px;
   padding: 10px;
-  border-radius: 5px;
+  max-width: 50%;
+  display: flex;
 }
 
 .sent {
+  background-color: #8a3ab9; /* Purple color for sent messages */
+  align-self: flex-end;
   color: #ffffff;
 }
 
 .received {
-  color: #ffffff;
+  background-color: #aed5f7; /* Light blue color for received messages */
+  align-self: flex-start; /* Adjusted */
+  color: #000000;
 }
 
 .timestamp {
-  margin-left: 10px;
+  font-size: 0.6rem;
+  align-self: flex-end;
 }
 
+/* Message Input Styles */
 .message-input {
   display: flex;
   align-items: center;
@@ -71,35 +83,44 @@ button {
   background-color: #294167;
   border: 1px solid transparent;
   border-radius: 0.75rem;
-  box-sizing: border-box;
   color: #ffffff;
   cursor: pointer;
-  flex: 0 0 auto;
-  font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.5rem;
   padding: 0.3rem 1.2rem;
   text-align: center;
-  text-decoration: none #6b7280 solid;
-  text-decoration-thickness: auto;
-  transition-duration: 0.2s;
-  transition-property: background-color, border-color, color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  width: auto;
+  transition: background-color 0.2s;
 }
 
-.button:hover {
-  background-color: #374151;
+button:hover {
+  background-color: #374151; /* Darker color on hover */
 }
 
-.button:focus {
-  box-shadow: none;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
+/* Message Content Styles */
+.message-text {
+  margin-top: 5px; /* Adjust as needed */
+  margin-bottom: 0;
+}
+
+.message-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.username {
+  font-weight: bold;
 }
