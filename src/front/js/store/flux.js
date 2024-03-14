@@ -257,14 +257,10 @@ const getState = ({ getStore, getActions, setStore }) => {
         }
       },
       SocketConnection: () => {
-        // Set up the socket connection
         const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:3001";
         const newSocket = io(BACKEND_URL);
-
-        // Store the socket object in the store
         setStore({ socket: newSocket });
 
-        // Handle socket events or any other setup if needed
         newSocket.on("connect", () => {
           console.log("Socket connected");
         });

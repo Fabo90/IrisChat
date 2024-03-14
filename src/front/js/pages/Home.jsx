@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Context } from "../store/appContext";
 import "../../styles/home.css";
 import { Navbar } from "../component/Navbar.jsx";
@@ -12,16 +12,25 @@ export const Home = () => {
   const [messageInput, setMessageInput] = useState("");
   const [headerName, setHeaderName] = useState(null);
   const [messages, setMessages] = useState([]);
+  const messagesContainerRef = useRef(null);
 
   useEffect(() => {
-    console.log(store.socket);
+    actions.SocketConnection();
+    store.socket.on("connect", () => {});
     store.socket.on("new_message", (data) => {
       console.log("New message received:", data);
       setMessages((prevMessages) => [...prevMessages, data]);
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop =
+          messagesContainerRef.current.scrollHeight;
+      }
     });
 
     return () => {
-      store.socket.disconnect();
+      if (store.socket) {
+        store.socket.off("new_message");
+        store.socket.disconnect();
+      }
     };
   }, []);
 
@@ -42,7 +51,7 @@ export const Home = () => {
   useEffect(() => {
     if (selectedUser) {
       setHeaderName(selectedUser.user_name);
-      setMessages([]); // Clear messages when a new user is selected
+      setMessages([]);
       store.socket.emit("join_room", {
         user_id: store.userInfo.user_id,
         other_user_id: selectedUser.id,
@@ -92,7 +101,7 @@ export const Home = () => {
               {headerName ? headerName : "Select a user to start chatting"}
             </h2>
           </div>
-          <div className="messages">
+          <div className="messages" ref={messagesContainerRef}>
             {messages.map((message, index) => (
               <div
                 key={index}

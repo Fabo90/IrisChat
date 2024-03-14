@@ -10,34 +10,17 @@ export const Login = () => {
   const { store, actions } = useContext(Context);
   const [inputUser, setInputUser] = useState("");
   const [inputPassword, setInputPassword] = useState("");
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
-  const save = () => {
-    actions
-      .postLogin(inputUser, inputPassword)
-      .then(() => {
-        if (!isSocketConnected) {
-          actions.SocketConnection();
-          setIsSocketConnected(true);
-          console.log(store.socket);
-        }
-      })
-      .catch((error) => {
-        Swal({
-          icon: "error",
-          title: "Error",
-          text: error.message || "An error occurred during login",
-        });
-      });
-  };
+  function save() {
+    actions.postLogin(inputUser, inputPassword);
+  }
 
   useEffect(() => {
-    if (store.socket) {
-      store.socket.on("connect", () => {
-        navigate("/home");
-      });
+    actions.isLogged();
+    if (store.loggedIn) {
+      navigate("/home");
     }
-  }, [store.socket]);
+  }, [store.token]);
 
   return (
     <div className="login-container">
@@ -67,6 +50,12 @@ export const Login = () => {
                   placeholder="Password"
                   onChange={(e) => setInputPassword(e.target.value)}
                   value={inputPassword}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      save();
+                    }
+                  }}
                 />
                 <label htmlFor="password">Password</label>
               </div>
