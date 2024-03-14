@@ -93,10 +93,10 @@ def change_password():
 
     current_user_identity = get_jwt_identity()
 
-    if not isinstance(current_user_identity, str):
+    if not isinstance(current_user_identity, dict) or 'user_name' not in current_user_identity:
         return jsonify({"message": "Invalid user identity format"}), 400
     
-    user_name = current_user_identity
+    user_name = current_user_identity['user_name']
 
     user = User.query.filter_by(user_name=user_name).first()
 
@@ -113,14 +113,11 @@ def change_password():
     return jsonify({"message": "Password changed successfully" }), 200
 
 @api.route('/users', methods=['GET'])
-@jwt_required()  # Require JWT authentication
+@jwt_required() 
 def get_users():
     try:
-        # Get the current user's username from the JWT token
         current_user_data = get_jwt_identity()
-        current_user_name = current_user_data.get("user_name")  # Extracting user name from the dictionary
-
-        # Fetch all user names and IDs excluding the current user
+        current_user_name = current_user_data.get("user_name") 
         users = User.query.filter(User.user_name != current_user_name).all()
         user_list = [{"id": user.id, "user_name": user.user_name} for user in users]
         
@@ -137,14 +134,12 @@ def send_message():
         receiver_id = data.get('receiver_id')
         message_text = data.get('message_text')
 
-        # Check if receiver exists
         receiver = User.query.get(receiver_id)
         if not receiver:
             return jsonify({"message": "Receiver not found"}), 404
 
         room_id = ''.join(sorted([str(sender_id), str(receiver_id)]))
 
-        # Emit the new message to the receiver's room
         socketio.emit('new_message', {
             "sender_id": sender_id,
             "receiver_id": receiver_id,
