@@ -51,7 +51,19 @@ export const Home = () => {
   useEffect(() => {
     if (selectedUser) {
       setHeaderName(selectedUser.user_name);
-      setMessages([]);
+      actions
+        .getMessageHistory(store.userInfo.user_id, selectedUser.id)
+        .then((data) => {
+          setMessages(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching message history:", error);
+          Swal({
+            icon: "error",
+            title: "Error",
+            text: "Failed to fetch message history. Please try again later.",
+          });
+        });
       store.socket.emit("join_room", {
         user_id: store.userInfo.user_id,
         other_user_id: selectedUser.id,

@@ -9,6 +9,7 @@ const getState = ({ getStore, getActions, setStore }) => {
       token: null,
       userNames: [],
       socket: null,
+      messages: {},
     },
     actions: {
       postLogin: async (user, password) => {
@@ -308,6 +309,49 @@ const getState = ({ getStore, getActions, setStore }) => {
           console.log(savedMessage);
         } catch (error) {
           console.error("Error sending message:", error);
+          Swal({
+            icon: "error",
+            title: "Error",
+            text: error.message,
+          });
+        }
+      },
+      getMessageHistory: async (senderId, receiverId) => {
+        try {
+          const store = getStore();
+          const token = store.token || localStorage.getItem("token");
+
+          if (!token) {
+            Swal({
+              icon: "error",
+              title: "Error",
+              text: "Session expired, please log in again",
+              didClose: () => {
+                window.location.href = "/";
+              },
+            });
+            throw new Error("Session expired, please log in again");
+          }
+
+          const response = await fetch(
+            `${process.env.BACKEND_URL}/api/message_history?sender_id=${senderId}&receiver_id=${receiverId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: "Bearer " + token,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch message history");
+          }
+
+          const data = await response.json();
+          setStore({ messages: data });
+          return data;
+        } catch (error) {
+          console.error("Error getting message history:", error);
           Swal({
             icon: "error",
             title: "Error",

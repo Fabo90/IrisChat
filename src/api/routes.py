@@ -32,6 +32,7 @@ def handle_join_room(data):
     room_id = ''.join(sorted([str(user_id), str(other_user_id)]))
     join_room(room_id)
     print(f"User {user_id} joined room {room_id}")
+    
 
 
 @api.route('/login', methods=['POST'])
@@ -147,9 +148,35 @@ def send_message():
             "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }, room=room_id)
 
+        message = Message(sender_id=sender_id, receiver_id=receiver_id, text=message_text)
+        db.session.add(message)
+        db.session.commit()
+
         print(f"Emitting new_message to room {room_id}: {message_text}")
 
         return jsonify({"message": "Message sent successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api.route('/message_history', methods=['GET'])
+def message_history():
+    try:
+        sender_id = request.args.get('sender_id')
+        receiver_id = request.args.get('receiver_id')
+
+        messages = Message.query.filter(
+            (Message.sender_id == sender_id) & (Message.receiver_id == receiver_id) |
+            (Message.sender_id == receiver_id) & (Message.receiver_id == sender_id)
+        ).order_by(Message.timestamp).all()
+
+        message_history = [{
+            "sender_id": message.sender_id,
+            "receiver_id": message.receiver_id,
+            "text": message.text,
+            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        } for message in messages]
+
+        return jsonify(message_history), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
