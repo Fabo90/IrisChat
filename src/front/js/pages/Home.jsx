@@ -12,7 +12,7 @@ export const Home = () => {
   const [messageInput, setMessageInput] = useState("");
   const [headerName, setHeaderName] = useState(null);
   const [messages, setMessages] = useState([]);
-  const messagesContainerRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     actions.SocketConnection();
@@ -20,10 +20,6 @@ export const Home = () => {
     store.socket.on("new_message", (data) => {
       console.log("New message received:", data);
       setMessages((prevMessages) => [...prevMessages, data]);
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop =
-          messagesContainerRef.current.scrollHeight;
-      }
     });
 
     return () => {
@@ -74,18 +70,26 @@ export const Home = () => {
   const handleUserClick = (userName) => {
     const user = store.userNames.find((user) => user.user_name === userName);
     if (user) {
-      actions.getInfo();
       setSelectedUser(user);
+      setHeaderName(user.user_name);
     }
   };
 
   const handleMessageSend = () => {
+    if (!selectedUser) return; // Check if a user is selected
     if (messageInput.trim() === "") return;
-    actions.getInfo();
     const senderId = store.userInfo.user_id;
     actions.postMessage(senderId, selectedUser.id, messageInput);
     setMessageInput("");
   };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <>
@@ -113,7 +117,7 @@ export const Home = () => {
               {headerName ? headerName : "Select a user to start chatting"}
             </h2>
           </div>
-          <div className="messages" ref={messagesContainerRef}>
+          <div className="messages">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -123,21 +127,20 @@ export const Home = () => {
                     : "received"
                 }`}
               >
-                <div>
-                  <div className="message-footer">
-                    <p className="message-text">{message.text}</p>
-                  </div>
-                  <div className="message-content">
-                    <span className="timestamp">
-                      {new Date(message.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
+                <div className="message-footer">
+                  <p className="message-text">{message.text}</p>
+                </div>
+                <div className="message-content">
+                  <span className="timestamp">
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
           {selectedUser && (
             <div className="message-input">
