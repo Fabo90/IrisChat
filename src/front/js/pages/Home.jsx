@@ -46,7 +46,6 @@ export const Home = () => {
 
   useEffect(() => {
     if (selectedUser) {
-      setHeaderName(selectedUser.user_name);
       actions
         .getMessageHistory(store.userInfo.user_id, selectedUser.id)
         .then((data) => {
@@ -69,14 +68,12 @@ export const Home = () => {
 
   const handleUserClick = (userName) => {
     const user = store.userNames.find((user) => user.user_name === userName);
-    if (user) {
-      setSelectedUser(user);
-      setHeaderName(user.user_name);
-    }
+    setSelectedUser(user);
+    setHeaderName(user.user_name);
   };
 
   const handleMessageSend = () => {
-    if (!selectedUser) return; // Check if a user is selected
+    if (!selectedUser) return;
     if (messageInput.trim() === "") return;
     const senderId = store.userInfo.user_id;
     actions.postMessage(senderId, selectedUser.id, messageInput);

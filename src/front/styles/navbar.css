@@ -8,6 +8,7 @@ img {
   width: 90px;
   height: 90px;
 }
+
 .dropdown-toggle {
   background-color: #294167;
   border: 1px solid transparent;
@@ -43,4 +44,13 @@ img {
   box-shadow: none;
   outline: 2px solid transparent;
   outline-offset: 2px;
+}
+
+.dropdown-toggle::after {
+  margin-top: 15%;
+}
+
+.navbarUser {
+  margin-top: 0;
+  margin-bottom: 0;
 }
